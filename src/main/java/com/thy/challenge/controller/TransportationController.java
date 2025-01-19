@@ -1,8 +1,11 @@
 package com.thy.challenge.controller;
 
 import com.thy.challenge.dto.TransportationDTO;
+import com.thy.challenge.entity.Location;
 import com.thy.challenge.entity.Transportation;
+import com.thy.challenge.repository.LocationRepository;
 import com.thy.challenge.repository.TransportationRepository;
+import com.thy.challenge.request.TransportationRequest;
 import com.thy.challenge.service.TransportationService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,10 +19,12 @@ import java.util.stream.Collectors;
 public class TransportationController {
     private final TransportationService transportationService;
     private final TransportationRepository transportationRepository;
+    private final LocationRepository locationRepository;
 
-    public TransportationController(TransportationService transportationService, TransportationRepository transportationRepository) {
+    public TransportationController(TransportationService transportationService, TransportationRepository transportationRepository, LocationRepository locationRepository) {
         this.transportationService = transportationService;
         this.transportationRepository = transportationRepository;
+        this.locationRepository = locationRepository;
     }
 
     @GetMapping
@@ -32,8 +37,19 @@ public class TransportationController {
 
 
     @PostMapping
-    public Transportation createTransportation(@RequestBody @Valid Transportation transportation) {
-        return transportationService.save(transportation);
+    public ResponseEntity<?> addTransportation(@RequestBody TransportationRequest request) {
+        Location origin = locationRepository.findById(request.getOriginId())
+                .orElseThrow(() -> new IllegalArgumentException("Invalid origin ID"));
+        Location destination = locationRepository.findById(request.getDestinationId())
+                .orElseThrow(() -> new IllegalArgumentException("Invalid destination ID"));
+
+        Transportation transportation = new Transportation();
+        transportation.setType(request.getType());
+        transportation.setOrigin(origin);
+        transportation.setDestination(destination);
+
+        Transportation savedTransportation = transportationRepository.save(transportation);
+        return ResponseEntity.ok(savedTransportation);
     }
 
     @GetMapping("/{id}")
