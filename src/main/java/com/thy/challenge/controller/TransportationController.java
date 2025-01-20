@@ -3,15 +3,15 @@ package com.thy.challenge.controller;
 import com.thy.challenge.dto.TransportationDTO;
 import com.thy.challenge.entity.Location;
 import com.thy.challenge.entity.Transportation;
+import com.thy.challenge.entity.TransportationType;
 import com.thy.challenge.repository.LocationRepository;
 import com.thy.challenge.repository.TransportationRepository;
 import com.thy.challenge.request.TransportationRequest;
 import com.thy.challenge.service.TransportationService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import javax.validation.Valid;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
@@ -35,7 +35,6 @@ public class TransportationController {
                 .collect(Collectors.toList());
     }
 
-
     @PostMapping
     public ResponseEntity<?> addTransportation(@RequestBody TransportationRequest request) {
         Location origin = locationRepository.findById(request.getOriginId())
@@ -58,13 +57,19 @@ public class TransportationController {
     }
 
     @PutMapping("/{id}")
-    public Transportation updateTransportation(@PathVariable Long id, @RequestBody @Valid Transportation transportationDetails) {
-        Transportation transportation = transportationService.findById(id);
-        transportation.setOrigin(transportationDetails.getOrigin());
-        transportation.setDestination(transportationDetails.getDestination());
-        transportation.setType(transportationDetails.getType());
-        transportation.setOperatingDays(transportationDetails.getOperatingDays());
-        return transportationService.save(transportation);
+    public ResponseEntity<?> updateTransportation(@PathVariable Long id, @RequestBody TransportationDTO dto) {
+              Optional<Transportation> transportationOpt = transportationRepository.findById(id);
+        Transportation transportation = transportationOpt.get();
+
+        transportation.setType(TransportationType.valueOf(dto.getType()));
+
+        transportation.setOrigin(locationRepository.findById(dto.getOriginId())
+                .orElseThrow(() -> new RuntimeException("Origin not found")));
+        transportation.setDestination(locationRepository.findById(dto.getDestinationId())
+                .orElseThrow(() -> new RuntimeException("Destination not found")));
+
+        transportationRepository.save(transportation);
+        return ResponseEntity.ok("Transportation updated successfully.");
     }
 
     @DeleteMapping("/{id}")
