@@ -6,6 +6,7 @@ import com.thy.challenge.repository.LocationRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Locale;
 
 @Service
 public class LocationService {
@@ -20,7 +21,12 @@ public class LocationService {
     }
 
     public Location save(Location location) {
-        return locationRepository.save(location);
+        boolean result = validate(location);
+        if (result) {
+            return locationRepository.save(location);
+        } else {
+            throw new IllegalArgumentException("locationCode is wrong");
+        }
     }
 
     public void deleteById(Long id) {
@@ -30,5 +36,14 @@ public class LocationService {
     public Location findById(Long id) {
         return locationRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Location not found with id: " + id));
+    }
+
+    public boolean validate(Location location) {
+        if (location.getLocationCode().length() > 3 && location.getName().toLowerCase(Locale.ROOT).contains("airport")) {
+            return false;
+        } else if (location.getLocationCode().length() > 30) {
+            return false;
+        }
+        return true;
     }
 }
