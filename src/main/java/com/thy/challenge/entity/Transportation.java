@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.sun.istack.NotNull;
 
 import javax.persistence.*;
-import java.util.List;
 import java.util.Objects;
 
 @Entity
@@ -26,9 +25,6 @@ public class Transportation {
     @NotNull
     @Enumerated(EnumType.STRING)
     private TransportationType type;
-
-    @ElementCollection
-    private List<Integer> operatingDays;
 
     public Long getId() {
         return id;
@@ -60,14 +56,6 @@ public class Transportation {
 
     public void setType(TransportationType type) {
         this.type = type;
-    }
-
-    public List<Integer> getOperatingDays() {
-        return operatingDays;
-    }
-
-    public void setOperatingDays(List<Integer> operatingDays) {
-        this.operatingDays = operatingDays;
     }
 
     @Override
